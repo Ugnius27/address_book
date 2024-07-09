@@ -20,7 +20,7 @@ void log_message(const char *message, LogLevel logLevel) {
             break;
         case LOG_LEVEL_WARNING:
         default:
-            printf("\033[103;30m[Warning] %s\033[0m\n", message);
+            printf("\033[103;30m%s\033[0m\n", message);
             break;
     }
 }

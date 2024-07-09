@@ -11,7 +11,7 @@ int main(void) {
     clear_screen();
 
     struct Address *addresses = NULL;
-    // load_addresses(ADDRESS_FILE_PATH, &addresses);
+    load_addresses(ADDRESS_FILE_PATH, &addresses);
 
     bool running = true;
     while (running) {
