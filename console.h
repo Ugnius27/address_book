@@ -1,6 +1,4 @@
-#ifndef CONSOLE_H
-#define CONSOLE_H
-
+#pragma once
 
 typedef enum {
     LOG_LEVEL_INFO,
@@ -12,6 +10,3 @@ typedef enum {
 void log_message(const char *, LogLevel);
 
 void clear_screen(void);
-
-
-#endif

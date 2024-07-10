@@ -1,6 +1,6 @@
-#ifndef LINKED_LIST_H
-#define LINKED_LIST_H
+#pragma once
 
+#include <stdbool.h>
 #define MAX_COMMAND_LENGTH 32
 
 struct Address {
@@ -11,23 +11,12 @@ struct Address {
 	struct Address *next;
 };
 
-typedef enum {
-	FILE_PARSE_RESULT_OK,
-	FILE_PARSE_ERROR_CANNOT_OPEN,
-	FILE_PARSE_ERROR
-} FileParseResult;
+struct Address *construct_node(char *, char *, char *, char *);
 
-FileParseResult load_addresses(const char *filepath, struct Address **list);
+void append(struct Address **, struct Address *);
 
-struct Address *construct_node(const char *name, const char *surname, const char *email, const char *number);
+bool insert(struct Address **, int, struct Address *);
 
-struct Address *create_node_from_string(const char *address_line);
+void delete_list(struct Address **);
 
-void add_to_list(struct Address **list, struct Address *node);
-
-void print_list(struct Address *list);
-
-void delete_list(struct Address **list);
-
-
-#endif
+bool delete_at(struct Address **, int);
