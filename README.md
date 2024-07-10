@@ -11,14 +11,16 @@ Quickstart guide:
 All commands
 
 1. list
-2. append <entry>
-3. insert <index> <entry>
-4. delete <index>|all
-5. find <index>|name <name>|surname <surname>|email <email>|number <number>
+2. append \<entry>
+3. insert \<index> \<entry>
+4. delete \<index>|all
+5. find \<index>|name \<name>|surname \<surname>|email \<email>|number \<number>
 6. help
 7. exit
 
-Note: Commands and arguments are case and whitespace sensitive.
+\<entry> = name,surname,email,number
+
+Note: Commands, arguments and address entries are case and whitespace sensitive.
 ------------------------------------------------------------------------------------
 
 Example commands: <br/>
