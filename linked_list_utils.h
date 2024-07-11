@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+
 #include "linked_list.h"
 
 #define DELIMITER ","
@@ -10,18 +12,29 @@
 #define HEADER_PRINT_FORMAT "|%-3s|%-16s|%-16s|%-32s|%-16s|"
 #define ADDRESS_SEPARATOR_LINE_LENGHT (3 + 16 + 16 + 32 + 16 + 6)
 
-struct FindResult {
-	struct Address *address;
+#define FIND_RESULT_MAX_ENTRY_COUNT 256
+
+struct FindResultEntry {
+	struct Address * address;
 	int index;
 };
 
+struct FindResult {
+	struct FindResultEntry *entries;
+	int capacity;
+	int count;
+};
+
+
 struct Address *create_node_from_string(char *address_line);
 
-bool load_addresses(char *path, struct Address **list);
+bool load_addresses(FILE* adress_file, struct Address **list);
 
-struct FindResult find_by_field(struct Address *addresses, char *field, bool (*comparator)(struct Address, char *));
+int count_list_length(struct Address *node);
 
-struct FindResult find_by_index(struct Address *addresses, int index);
+struct FindResult find_by_field(struct Address *list, char *field, bool (*comparator)(struct Address, char *));
+
+struct FindResult find_by_index(struct Address *list, int index);
 
 bool compare_name(struct Address address, char *name);
 
@@ -39,4 +52,10 @@ void print_header(void);
 
 void print_separator_line(void);
 
-void print_find_result(struct FindResult findResult);
+void findResult_print(struct FindResult findResult);
+
+bool findResult_append_entry(struct FindResult* findResult, struct FindResultEntry entry);
+
+struct FindResult findResult_init(int capacity);
+
+void findResult_cleanup(struct FindResult *findResult);

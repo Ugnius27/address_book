@@ -42,6 +42,8 @@ bool parse_command(Operation *operation, char **input_line);
 
 bool parse_find_operation(Operation *operation, char **arguments);
 
+void execute_find_operation(Operation operation, struct Address* list, char* field);
+
 bool parse_delete_operation(Operation *operation, char **arguments);
 
 InsertParseResult parse_insert_operation_arguments(char *arguments, int *index, struct Address **address);

@@ -6,19 +6,35 @@
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <stdio.h>
+#include <unistd.h>
 
-#define ADDRESS_FILE_NAME "addresses.csv"
+void configure_signal_handlers(void);
+FILE *open_address_file_in_homedir(const char *);
+void termination_handler (int);
+void cleanup_resources(void);
 
-bool get_address_file_path(char *path_buffer);
+struct Resources {
+    struct Address** address_list;
+};
+
+struct Resources g_resources;
 
 int main(void) {
     clear_screen();
+    configure_signal_handlers();
+    atexit(&cleanup_resources);
 
     struct Address *addresses = NULL;
+    g_resources.address_list = &addresses;
 
-    char address_file_path[NAME_MAX];
-    if (get_address_file_path(address_file_path)) {
-        load_addresses(address_file_path, &addresses);
+    FILE* address_file = open_address_file_in_homedir("addresses.csv");
+    if (address_file != NULL) {
+        load_addresses(address_file, &addresses);
+        fclose(address_file);
+    } else {
+        log_message("[Warning] Failed to find or open address file.", LOG_LEVEL_WARNING);
     }
 
     bool running = true;
@@ -30,19 +46,50 @@ int main(void) {
         running = process_user_action(input_buffer, &addresses);
     }
 
-    delete_list(&addresses);
+    // This is now redundant, but I dislike the current solution as a whole,
+    // because we don't need to manually deallocate memory at program end.
+    //delete_list(&addresses);
 }
 
-bool get_address_file_path(char *path_buffer) {
-    char *home_path = getenv("HOME");
+
+FILE* open_address_file_in_homedir(const char* address_file_name) {
+    const char *home_path = getenv("HOME");
     if (home_path == NULL) {
-        log_message("[Warning] Could not find the user's home directory.", LOG_LEVEL_WARNING);
         return false;
     }
 
+    long path_max = pathconf("/", _PC_PATH_MAX);
+    char* path_buffer = (char*) malloc(path_max);
     strcpy(path_buffer, home_path);
-    strncat(path_buffer, "/", NAME_MAX);
-    strncat(path_buffer, ADDRESS_FILE_NAME, NAME_MAX);
+    strncat(path_buffer, "/", PATH_MAX);
+    strncat(path_buffer, address_file_name, NAME_MAX);
 
-    return true;
+    FILE* address_file = fopen(path_buffer, "r");
+    free(path_buffer);
+
+    return address_file;
+}
+
+void configure_signal_handlers(void) {
+    struct sigaction action;
+    action.sa_handler = termination_handler;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = 0;
+
+    sigaction(SIGINT, &action, NULL);
+    sigaction(SIGQUIT, &action, NULL);
+    sigaction(SIGTERM, &action, NULL);
+    sigaction(SIGHUP, &action, NULL);
+}
+
+void termination_handler (int signum) {
+    puts("");
+    log_message("Terminating...", LOG_LEVEL_WARNING);
+    exit(0);
+}
+
+void cleanup_resources(void) {
+    if (g_resources.address_list != NULL) {
+        delete_list(g_resources.address_list);
+    }
 }
