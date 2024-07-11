@@ -4,11 +4,10 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-bool load_addresses(char *filepath, struct Address **list) {
-    FILE *address_file = fopen(filepath, "r");
+bool load_addresses(FILE* address_file, struct Address **list) {
     if (address_file == NULL) {
-        log_message("[Warning] Failed to find or open address file.", LOG_LEVEL_WARNING);
         return false;
     }
 
@@ -25,8 +24,16 @@ bool load_addresses(char *filepath, struct Address **list) {
         }
     }
 
-    fclose(address_file);
     return true;
+}
+
+int count_list_length(struct Address *node) {
+    int i = 0;
+    while (node != NULL) {
+        node = node->next;
+        i++;
+    }
+    return i;
 }
 
 bool check_address_line_entry(const char *address_line) {
@@ -60,21 +67,25 @@ struct Address *create_node_from_string(char *address_line) {
 
 // Could possibly merge these two find functions, but it seems like a lot of over-engineering.
 struct FindResult find_by_field(struct Address *list, char *field, bool (*comparator)(struct Address, char *)) {
-    struct FindResult findResult;
-    findResult.address = NULL;
-    findResult.index = -1;
-
-    if (list == NULL) {
+    /*
+     * To avoid goigh through the list twice on every search,
+     * we should implement a more complex linked list, which stores it's element count,
+     * so we could just allocate the needed ammount of memory right away.
+     */
+    int max_entry_count = count_list_length(list);
+    struct FindResult findResult = findResult_init(max_entry_count);
+    if (findResult.entries == NULL) {
         return findResult;
     }
 
-    int i = 1;
+    int i = 0;
     struct Address *current = list;
     while (current != NULL) {
         if (comparator(*current, field)) {
-            findResult.address = current;
-            findResult.index = i;
-            return findResult;
+            struct FindResultEntry entry;
+            entry.address = current;
+            entry.index = i + 1;
+            findResult_append_entry(&findResult, entry);
         }
         current = current->next;
         i++;
@@ -84,20 +95,20 @@ struct FindResult find_by_field(struct Address *list, char *field, bool (*compar
 }
 
 struct FindResult find_by_index(struct Address *list, int index) {
-    struct FindResult findResult;
-    findResult.address = NULL;
-    findResult.index = -1;
-
-    if (list == NULL || index < 1) {
+    int max_entry_count = count_list_length(list);
+    struct FindResult findResult = findResult_init(max_entry_count);
+    if (findResult.entries == NULL) {
         return findResult;
     }
 
-    int i = 1;
+    int i = 0;
     struct Address *current = list;
     while (current != NULL) {
-        if (i == index) {
-            findResult.address = current;
-            findResult.index = i;
+        if (i == index - 1) {
+            struct FindResultEntry entry;
+            entry.address = current;
+            entry.index = i + 1;
+            findResult_append_entry(&findResult, entry);
             return findResult;
         }
         current = current->next;
@@ -157,16 +168,72 @@ void print_header() {
     print_separator_line();
 }
 
+void findResult_print(struct FindResult findResult) {
+    if (findResult.entries == NULL) {
+        log_message("Not enough memory.", LOG_LEVEL_ERROR); // Should implement more robust memory error handling.
+    }
 
-void print_find_result(struct FindResult findResult) {
-    if (findResult.address != NULL) {
-        log_message("First found result:", LOG_LEVEL_INFO);
-        print_separator_line();
-        print_header();
-        print_address(*findResult.address, findResult.index);
-        print_separator_line();
-    } else {
-        log_message("Address not found.", LOG_LEVEL_WARNING);
+    if (findResult.count == 0) {
+        log_message("No addresses found.", LOG_LEVEL_WARNING);
+        return;
+    }
+
+    char line[128];
+    snprintf(line, sizeof(line), "Found %d result(s):", findResult.count);
+    log_message(line, LOG_LEVEL_INFO);
+    print_separator_line();
+    print_header();
+
+    for (int i = 0; i < findResult.count; i++) {
+        const struct FindResultEntry entry = findResult.entries[i];
+        print_address(*entry.address, entry.index);
+    }
+
+    print_separator_line();
+}
+
+struct FindResult findResult_init(int capacity) {
+    struct FindResult findResult;
+    findResult.count = -1;
+    findResult.capacity = 0;
+    findResult.entries = NULL;
+
+    if (capacity < 1) {
+        return findResult;
+    }
+
+    findResult.entries = (struct FindResultEntry *) malloc(sizeof(struct FindResult) * capacity);
+    if (findResult.entries == NULL) {
+        return findResult;
+    }
+    findResult.capacity = capacity;
+    findResult.count = 0;
+
+    return findResult;
+}
+
+bool findResult_append_entry(struct FindResult* findResult, struct FindResultEntry entry) {
+    if (findResult->entries == NULL) {
+        return false;
+    }
+
+    if (findResult->count >= findResult->capacity) {
+        return false;
+    }
+
+    findResult->entries[findResult->count] = entry;
+    findResult->count++;
+
+    return true;
+}
+
+void findResult_cleanup(struct FindResult *findResult) {
+    if (findResult->entries != NULL) {
+        free(findResult->entries);
+        findResult->entries = NULL;
+
+        findResult->capacity = 0;
+        findResult->count = -1;
     }
 }
 

@@ -15,9 +15,12 @@ bool process_user_action(char *input_buffer, struct Address **list) {
         return true;
     }
 
-    int index;
     struct Address *address = NULL;
+    int index;
+
     struct FindResult findResult;
+    InsertParseResult parseResult;
+
     switch (operation) {
         case OPERATION_EXIT:
             return false;
@@ -39,8 +42,12 @@ bool process_user_action(char *input_buffer, struct Address **list) {
                 log_message("Failed to parse deletion index.", LOG_LEVEL_ERROR);
                 break;
             }
+            if (*list == NULL) {
+                log_message("Address book is empty.", LOG_LEVEL_WARNING);
+                break;
+            }
             if (!delete_at(list, index)) {
-                log_message("Address at specified index does not exists.", LOG_LEVEL_ERROR);
+                log_message("Address at specified index does not exist.", LOG_LEVEL_ERROR);
                 break;
             }
             log_message("Deletetion successful.", LOG_LEVEL_INFO);
@@ -56,7 +63,7 @@ bool process_user_action(char *input_buffer, struct Address **list) {
         case OPERATION_INSERT:
             // Argument parsing should not happen here,
             // but fixing it would require a more complex argument parsing system.
-            InsertParseResult parseResult = parse_insert_operation_arguments(arguments, &index, &address);
+            parseResult = parse_insert_operation_arguments(arguments, &index, &address);
             if (parseResult != INSERT_PARSE_RESULT_OK) {
                 print_insert_result_message(parseResult);
                 break;
@@ -69,23 +76,28 @@ bool process_user_action(char *input_buffer, struct Address **list) {
             break;
         case OPERATION_FIND_BY_POS:
             findResult = find_by_index(*list, atoi(arguments));
-            print_find_result(findResult);
+            findResult_print(findResult);
+            findResult_cleanup(&findResult);
             break;
         case OPERATION_FIND_BY_NAME:
             findResult = find_by_field(*list, arguments, compare_name);
-            print_find_result(findResult);
+            findResult_print(findResult);
+            findResult_cleanup(&findResult);
             break;
         case OPERATION_FIND_BY_SURNAME:
             findResult = find_by_field(*list, arguments, compare_surname);
-            print_find_result(findResult);
+            findResult_print(findResult);
+            findResult_cleanup(&findResult);
             break;
         case OPERATION_FIND_BY_EMAIL:
             findResult = find_by_field(*list, arguments, compare_email);
-            print_find_result(findResult);
+            findResult_print(findResult);
+            findResult_cleanup(&findResult);
             break;
         case OPERATION_FIND_BY_NUMBER:
             findResult = find_by_field(*list, arguments, compare_number);
-            print_find_result(findResult);
+            findResult_print(findResult);
+            findResult_cleanup(&findResult);
             break;
         case OPERATION_HELP:
             print_help();
@@ -142,7 +154,7 @@ bool parse_find_operation(Operation *operation, char **arguments) {
         *operation = OPERATION_FIND_BY_EMAIL;
     } else if (strcmp(subcommand, "number") == 0) {
         *operation = OPERATION_FIND_BY_NUMBER;
-    } else if (atoi(subcommand) != 0) {
+    } else if (atoi(subcommand) > 0) {
         *operation = OPERATION_FIND_BY_POS;
         *arguments = subcommand;
     } else {
