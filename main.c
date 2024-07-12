@@ -3,7 +3,6 @@
 #include "linked_list.h"
 #include "linked_list_utils.h"
 
-#include <limits.h>
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -16,7 +15,7 @@ void termination_handler (int);
 void cleanup_resources(void);
 
 struct Resources {
-    struct Address** address_list;
+    struct Address* address_list;
 };
 
 struct Resources g_resources;
@@ -26,12 +25,12 @@ int main(void) {
     configure_signal_handlers();
     atexit(&cleanup_resources);
 
-    struct Address *addresses = NULL;
-    g_resources.address_list = &addresses;
+    g_resources.address_list = NULL;
+    struct Address **addresses = &g_resources.address_list;
 
     FILE* address_file = open_address_file_in_homedir("addresses.csv");
     if (address_file != NULL) {
-        load_addresses(address_file, &addresses);
+        load_addresses(address_file, addresses);
         fclose(address_file);
     } else {
         log_message("[Warning] Failed to find or open address file.", LOG_LEVEL_WARNING);
@@ -43,7 +42,7 @@ int main(void) {
         if (!get_user_action(input_buffer)) {
             continue;
         }
-        running = process_user_action(input_buffer, &addresses);
+        running = process_user_action(input_buffer, addresses);
     }
 
     // This is now redundant, but I dislike the current solution as a whole,
@@ -61,8 +60,8 @@ FILE* open_address_file_in_homedir(const char* address_file_name) {
     long path_max = pathconf("/", _PC_PATH_MAX);
     char* path_buffer = (char*) malloc(path_max);
     strcpy(path_buffer, home_path);
-    strncat(path_buffer, "/", PATH_MAX);
-    strncat(path_buffer, address_file_name, NAME_MAX);
+    strncat(path_buffer, "/", path_max);
+    strncat(path_buffer, address_file_name, path_max);
 
     FILE* address_file = fopen(path_buffer, "r");
     free(path_buffer);
@@ -90,6 +89,6 @@ void termination_handler (int signum) {
 
 void cleanup_resources(void) {
     if (g_resources.address_list != NULL) {
-        delete_list(g_resources.address_list);
+        delete_list(&g_resources.address_list);
     }
 }
