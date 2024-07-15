@@ -37,7 +37,7 @@ delete all <br/>
 
 **Make targets:**
 
-all - builds the entire project.
-compile - creates only the object files.
-address_book - same as all.
-clean - removes all creates files.
+all - builds the entire project.  <br/>
+compile - creates only the object files.  <br/>
+address_book - same as all.  <br/>
+clean - removes all creates files.  <br/>
