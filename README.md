@@ -34,3 +34,10 @@ delete 2 <br/>
 delete all <br/>
 
 ------------------------------------------------------------------------------------
+
+**Make targets:**
+
+all - builds the entire project.
+compile - creates only the object files.
+address_book - same as all.
+clean - removes all creates files.
