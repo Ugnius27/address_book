@@ -5,7 +5,7 @@ vpath %.o $(BUILD_PATH)
 
 SOURCES := $(wildcard *.c)
 OBJECTS := $(patsubst %.c, %.o, $(SOURCES))
-CFLAGS = -I.
+CFLAGS := -I.
 
 
 all: $(EXECUTABLE)
