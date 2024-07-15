@@ -1,31 +1,35 @@
-BUILD_PATH = build
-EXECUTABLE = address_book
+BUILD_PATH := build
+EXECUTABLE := address_book
 
-vpath %.o $(BUILD_PATH)
+SOURCE_ROOT_PATH := src
+LIBRARY_ROOT_PATH := lib
+LIBRARY := liblinked_list.so
 
-SOURCES := $(wildcard *.c)
-OBJECTS := $(patsubst %.c, %.o, $(SOURCES))
-CFLAGS := -I.
+vpath $(LIBRARY) $(LIBRARY_ROOT_PATH)/build
+vpath %.c $(SOURCE_ROOT_PATH)
+vpath $(EXECUTABLE) $(BUILD_PATH)/$(EXECUTABLE)
 
+CFLAGS := -Wall -Werror
 
 all: $(EXECUTABLE)
 
-compile: $(OBJECTS)
+$(EXECUTABLE): OBJECTS = $(wildcard $(SOURCE_ROOT_PATH)/build/*.o)
+$(EXECUTABLE): compile $(LIBRARY) | $(BUILD_PATH)
+	$(CC) $(CLFAGS) $(OBJECTS) -L$(LIBRARY_ROOT_PATH)/build -l$(LIBRARY:lib%.so=%) -o $(BUILD_PATH)/$(EXECUTABLE) -Wl,-rpath=$(LIBRARY_ROOT_PATH)/build
 
-$(EXECUTABLE): $(BUILD_PATH)/$(EXECUTABLE)
+compile:
+	@$(MAKE) -C $(SOURCE_ROOT_PATH)
 
-$(BUILD_PATH)/$(EXECUTABLE): OBJECT_FILES := $(foreach object, $(OBJECTS), $(BUILD_PATH)/$(object))
-$(BUILD_PATH)/$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(OBJECT_FILES) -o $@
-
-$(OBJECTS): %.o: %.c | $(BUILD_PATH)
-	$(CC) -c $(CFLAGS) $< -o $(BUILD_PATH)/$@
+$(LIBRARY):
+	@$(MAKE) -C $(LIBRARY_ROOT_PATH)
 
 $(BUILD_PATH):
 	@mkdir -p $(BUILD_PATH)
 
 clean:
 	@rm -rf $(BUILD_PATH)
+	@$(MAKE) -C $(LIBRARY_ROOT_PATH) $@
+	@$(MAKE) -C $(SOURCE_ROOT_PATH) $@
 	@echo "Project cleaned."
 
-.PHONY: all compile clean
+.PHONY: all clean compile
