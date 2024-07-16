@@ -8,7 +8,6 @@ OBJECTS := $(patsubst %.c, %.o, $(SOURCES))
 vpath %.o $(BUILD_PATH)
 vpath $(LIBRARY) $(BUILD_PATH)
 
-LIB_DIR_NAME = linked_list
 LIB_INSTALL_DIR = /usr/local/lib
 INCLUDE_INSTALL_DIR = /usr/local/include
 
@@ -32,16 +31,13 @@ clean:
 	@echo "Library cleaned."
 
 install: $(LIBRARY)
-	#install -D $(BUILD_PATH)/$(LIBRARY) $(LIB_INSTALL_DIR)/$(LIB_DIR_NAME)/$(LIBRARY)
-	install -D $(BUILD_PATH)/$(LIBRARY) $(LIB_INSTALL_DIR)/$(LIBRARY)
-	install -d $(INCLUDE_INSTALL_DIR)/$(LIB_DIR_NAME)
-	$(foreach header, $(HEADERS), install $(header) $(INCLUDE_INSTALL_DIR)/$(LIB_DIR_NAME))
+	install $(BUILD_PATH)/$(LIBRARY) $(LIB_INSTALL_DIR)/$(LIBRARY)
+	$(foreach header, $(HEADERS), install $(header) $(INCLUDE_INSTALL_DIR))
 	ldconfig
 
 uninstall:
-	#cd $(LIB_INSTALL_DIR)/$(LIB_DIR_NAME) && rm *
 	rm $(LIB_INSTALL_DIR)/$(LIBRARY)
-	cd $(INCLUDE_INSTALL_DIR)/$(LIB_DIR_NAME) && rm *
+	cd $(INCLUDE_INSTALL_DIR)/$(LIB_DIR_NAME) && rm "$(HEADERS)"
 	ldconfig
 
 .PHONY: all clean install uninstall
