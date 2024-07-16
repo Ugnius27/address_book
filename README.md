@@ -3,8 +3,10 @@
 ------------------------------------------------------------------------------------
 
 Quickstart guide:
-1. Start the program.
-2. Type "help" and press enter to see all available commands.
+1. Run the "make" command in the project's root directory.
+2. Start the program.
+3. Type "help" and press enter to see all available commands.
+4. (Optional) Run "sudo make install" for a permanent installation.
 
 ------------------------------------------------------------------------------------
 
@@ -41,3 +43,5 @@ all - builds the entire project.  <br/>
 compile - creates only the src directory object files.  <br/>
 address_book - same as all.  <br/>
 clean - removes all created files.  <br/>
+install - permanently installs the program into /usr/local/bin. The required linked_list libraries are installed into /usr/local/lib and /usr/local/include.
+uninstall - removes all files created by install.
